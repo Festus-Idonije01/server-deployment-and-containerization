@@ -83,6 +83,25 @@ def auth():
     return jsonify(token=_get_jwt(user_data).decode('utf-8'))
 
 
+@APP.route('/contents', methods=['GET'])
+def decode_jwt():
+    """
+    Check user token and return non-secret data
+    """
+    if not 'Authorization' in request.headers:
+        abort(401)
+    data = request.headers['Authorization']
+    token = str.replace(str(data), 'Bearer ', '')
+    try:
+        data = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+    except: # pylint: disable=bare-except
+        abort(401)
+
+
+    response = {'email': data['email'],
+                'exp': data['exp'],
+                'nbf': data['nbf'] }
+    return jsonify(**response)
 
 
 def _get_jwt(user_data):
